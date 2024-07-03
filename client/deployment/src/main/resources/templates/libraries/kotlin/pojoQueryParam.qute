@@ -1,0 +1,142 @@
+{#if withXml}
+import jakarta.xml.bind.annotation.XmlElement
+import jakarta.xml.bind.annotation.XmlRootElement
+import jakarta.xml.bind.annotation.XmlAccessType
+import jakarta.xml.bind.annotation.XmlAccessorType
+import jakarta.xml.bind.annotation.XmlType
+import jakarta.xml.bind.annotation.XmlEnum
+import jakarta.xml.bind.annotation.XmlEnumValue
+{#else}
+import java.lang.reflect.Type
+import com.fasterxml.jackson.annotation.JsonProperty
+{/if}
+
+{#if withXml}
+@XmlAccessorType(XmlAccessType.FIELD)
+{#if m.hasVars}@XmlType(name = "{m.classname}", propOrder = [ {#for var in m.vars}"{var.name}"{#if var_hasNext}, {/if}{/for} ]){#else}
+@XmlType(name = "{m.classname}")
+{/if}
+{#if !m.parent || m.parent.isEmpty}@XmlRootElement(name = "{m.classname}"){/if}
+{#else}
+@JsonIgnoreProperties(ignoreUnknown = true)
+{/if}
+{#if m.description}
+/**
+ * {m.description}
+ */
+{/if}
+{#include additionalModelTypeAnnotations.qute m=m/}
+data class {m.classname}QueryParam {#if m.parent}: {m.parent}(){/if}{#if m.serializableModel}, java.io.Serializable{/if} {
+
+    {#for v in m.vars}
+    {#if !v.deprecated || openapi:genDeprecatedModelAttr(package, m.classname, codegen)}
+    {#if v.isEnum}
+    {#if v.isContainer && v.mostInnerItems}
+    {#include enumClass.qute e=v/}
+    {#else if !v.isContainer}
+    {#include enumClass.qute e=v/}
+    {/if}
+    {/if}
+    {#if withXml}
+    @XmlElement(name = "{v.basename}"{#if v.required}, required = {v.required}{/if})
+    {/if}
+    {#if m.description}
+    /**
+     * {m.description}
+     */
+    {/if}
+    {#if !v.isEnum}
+    @jakarta.ws.rs.QueryParam("{v.name}")
+    {/if}
+    {#if v.isContainer}
+    val {v.name}: {v.datatypeWithEnum} = {#if v.required && v.defaultValue} {v.defaultValue} {#else} mutableListOf() {/if}
+    {#else}
+    val {v.name}: {v.datatypeWithEnum}{#if v.defaultValue} = {v.defaultValue}{#else if v.required} {/else}? = null {/if}
+    {/if}
+    {/if}
+    {/for}
+
+    {#for v in m.vars}
+    {#if !v.deprecated || openapi:genDeprecatedModelAttr(package, m.classname, codegen)}
+    /**
+     {#if v.description}
+     * {v.description}
+     {#else}
+     * Get {v.name}
+     {/if}
+     {#if v.minimum}
+     * minimum: {v.minimum}
+     {/if}
+     {#if v.maximum}
+     * maximum: {v.maximum}
+     {/if}
+     * @return {v.name}
+     */
+    {#if !withXml}
+    @JsonProperty("{v.baseName}")
+       {#if !v.required} 
+          @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+       {/if}
+    {/if}
+    {#for ext in v.vendorExtensions.x-extra-annotation.orEmpty}
+    {ext}
+    {/for}
+    {#if v.useBeanValidation}{#include beanValidation.qute p=v/}{/if}
+    {#if v.isEnum && v.isContainer}fun get{v.getter}(): {v.datatypeWithEnum} {
+        return {v.name}
+    }{#else if v.isEnum && !v.isArray && !v.isMap}fun get{v.getter}(): {v.datatypeWithEnum} {
+        return {v.name}
+    }{#else if !v.isEnum && !v.isArray && !v.isMap}fun get{v.getter}(): {v.datatype} {
+        return {v.name}
+    }{#else if !v.isEnum && (v.isArray || v.isMap)}fun get{v.getter}(): {v.datatype} {
+        return {v.name}
+    }{#else if !v.isEnum}fun get{v.getter}(): {v.datatype} {
+        return {v.name}
+    }{/if}
+
+    {#if !v.isReadOnly}
+    /**
+     * Set {v.name}
+     */
+    fun set{v.setter}({v.name}: {v.datatypeWithEnum}): {m.classname}QueryParam {
+        return this.copy({v.name} = {v.name})
+    }
+
+    {#if v.isArray}
+    fun add{v.nameInPascalCase}Item({v.name}Item: {v.items.datatypeWithEnum}): {m.classname}QueryParam {
+        return this.copy({v.name} = this.{v.name} + {v.name}Item)
+    }
+    {/if}
+    {#if v.isMap}
+    fun put{v.nameInPascalCase}Item(key: String, {v.name}Item: {v.items.datatypeWithEnum}): {m.classname}QueryParam {
+        val newMap = this.{v.name}.toMutableMap()
+        newMap[key] = {v.name}Item
+        return this.copy({v.name} = newMap)
+    }
+    {/if}
+    {/if}
+
+    {/if}
+    {/for}
+    /**
+     * Create a string representation of this pojo.
+     */
+    override fun toString(): String {
+        return "class {m.classname}QueryParam {\n" + 
+        {#if m.parent}
+            "    " + toIndentedString(super.toString()) + "\n" + 
+        {/if}
+        {#for v in m.vars}
+        {#if !v.deprecated || openapi:genDeprecatedModelAttr(package, m.classname, codegen)}
+            "    {v.name}: " + toIndentedString({v.name}) + "\n" + 
+        {/if}
+        {/for}
+            "}"
+    }
+
+    /**
+     * Convert the given object to string with each line indented by 4 spaces
+     * (except the first line).
+     */
+    private fun toIndentedString(o: Any?): String = o?.toString()?.replace("\n", "\n    ") ?: "null"
+}

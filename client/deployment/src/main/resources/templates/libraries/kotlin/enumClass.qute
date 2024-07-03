@@ -1,0 +1,38 @@
+{#if e.withXml}
+@XmlType(name = {#if e.isEnum}"{e.items.enumName}"{#else}"{e.enumName}"{/if})
+@XmlEnum({#if e.isEnum}{e.items.dataType}{#else}{e.dataType}{/if}::class)
+{/if}
+{#include additionalEnumTypeAnnotations.qute e=e /}
+enum class {e.enumName}(val value: {#if e.isContainer}{e.items.dataType}{#else}{e.dataType}{/if}) {
+    {#if e.allowableValues}
+    {#if additionalEnumTypeUnexpectedMember}{#include additionalEnumTypeUnexpectedMember.qute e=e/}{/if}
+    {#for v in e.allowableValues.enumVars}{#if e.withXml}
+    @XmlEnumValue({#if v.isInteger || v.isDouble || v.isLong || v.isFloat}"{/if}{v.value}{#if v.isInteger || v.isDouble || v.isLong || v.isFloat}"{/if})
+    {/if}
+    {v.name}({#if e.isEnum}{e.items.dataType}{#else}{e.dataType}{/if}.valueOf({v.value})){#if v_hasNext}, {#else}; {/if}
+    {/for}
+    {/if}
+
+    companion object {
+        private val values = enumValues<{e.enumName}>()
+
+        @com.fasterxml.jackson.annotation.JsonValue
+        fun valueToString(value: {#if e.isContainer}{e.items.dataType}{#else}{e.dataType}{/if}): String {
+            return value.toString()
+        }
+
+        @com.fasterxml.jackson.annotation.JsonCreator
+        fun fromString(v: String): {e.enumName}? {
+            for (b in values) {
+                if (b.value.toString().equals(v, ignoreCase = true)) {
+                    return b
+                }
+            }
+            {#if e.useNullForUnknownEnumValue}return null;{#else if additionalEnumTypeUnexpectedMember}return {additionalEnumTypeUnexpectedMemberName};{#else}throw IllegalArgumentException("Unexpected value '$v'"){/if}
+        }
+    }
+
+    override fun toString(): String {
+        return value.toString()
+    }
+}

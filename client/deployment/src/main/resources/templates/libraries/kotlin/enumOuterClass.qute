@@ -1,0 +1,37 @@
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonValue
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+
+/**
+ * {#insert e.description}Gets or Sets {e.name}{/}{#if e.description}{description}{/}
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
+{#include additionalEnumTypeAnnotations.qute e=e/}
+enum class {#if e.datatypeWithEnum}{e.datatypeWithEnum}{#else}{e.classname}{/if}(val value: {e.dataType}) {
+    {#if e.allowableValues}
+    {#if additionalEnumTypeUnexpectedMember}{#include additionalEnumTypeUnexpectedMember.qute e=e/}{/if}
+    {#for v in e.allowableValues.enumVars}
+    {v.name}({e.dataType}.valueOf({v.value})){#if v_hasNext}, {#else};{/if}
+    {/for}
+    {/if}
+
+    companion object {
+        @JsonValue
+        fun valueToString(value: {#if e.isContainer}{e.items.dataType}{#else}{e.dataType}{/if}): String {
+            return value.toString()
+        }
+
+        @JsonCreator
+        fun fromString(text: String): {#if e.datatypeWithEnum}{e.datatypeWithEnum}{#else}{e.classname}{/if}? {
+            return enumValues<{#if e.datatypeWithEnum}{e.datatypeWithEnum}{#else}{e.classname}{/if}>()
+                .find { it.value.toString().equals(text, ignoreCase = true) }
+                {#if e.useNullForUnknownEnumValue}?: null
+                {#else if additionalEnumTypeUnexpectedMember}?: {additionalEnumTypeUnexpectedMemberName}
+                {#else}?: throw IllegalArgumentException("Unexpected value '$text'"){/if}
+        }
+    }
+
+    override fun toString(): String {
+        return value.toString()
+    }
+}

@@ -1,0 +1,30 @@
+{#if m.isAdditionalPropertiesTrue && additionalPropertiesAsAttribute}
+    /**
+    * A property that represents the additionalProperties keyword in the OAS document.
+    */
+    private val additionalProperties: MutableMap<String, {m.additionalPropertiesType}> = mutableMapOf()
+
+    /**
+    * Sets an additional property with the specified key and value.
+    */
+    @com.fasterxml.jackson.annotation.JsonAnySetter
+    fun setAdditionalProperty(key: String, value: {m.additionalPropertiesType}): {m.classname} {
+        additionalProperties[key] = value
+        return this
+    }
+
+    /**
+    * Gets the additionalProperties map.
+    */
+    @com.fasterxml.jackson.annotation.JsonAnyGetter
+    fun getAdditionalProperties(): Map<String, {m.additionalPropertiesType}> {
+        return additionalProperties
+    }
+
+    /**
+    * Gets an additional property with the specified key.
+    */
+    fun getAdditionalProperty(key: String): {m.additionalPropertiesType}? {
+        return additionalProperties[key]
+    }
+{/if}

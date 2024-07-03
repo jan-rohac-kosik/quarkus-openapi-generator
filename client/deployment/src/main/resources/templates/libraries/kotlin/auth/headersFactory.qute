@@ -1,0 +1,14 @@
+package {apiPackage}.auth
+
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
+import io.quarkiverse.openapi.generator.OpenApiGeneratorConfig
+import io.quarkiverse.openapi.generator.providers.AbstractAuthenticationPropagationHeadersFactory
+import io.quarkiverse.openapi.generator.providers.HeadersProvider
+
+@ApplicationScoped
+class AuthenticationPropagationHeadersFactory @Inject constructor(
+    compositeProvider: CompositeAuthenticationProvider,
+    generatorConfig: OpenApiGeneratorConfig,
+    headersProvider: HeadersProvider
+) : AbstractAuthenticationPropagationHeadersFactory(compositeProvider, generatorConfig, headersProvider)
